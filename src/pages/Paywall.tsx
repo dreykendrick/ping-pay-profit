@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,7 +45,14 @@ export default function Paywall() {
   const [requestSubmitted, setRequestSubmitted] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, profile, signOut, loading } = useAuth();
+  const { user, profile, isAdmin, signOut, loading } = useAuth();
+
+  // Redirect admins to admin panel
+  useEffect(() => {
+    if (!loading && isAdmin) {
+      navigate('/admin');
+    }
+  }, [loading, isAdmin, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
