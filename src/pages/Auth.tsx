@@ -34,7 +34,7 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, profile, loading, signIn, signUp } = useAuth();
+  const { user, profile, isAdmin, loading, signIn, signUp } = useAuth();
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -46,14 +46,16 @@ export default function Auth() {
 
   useEffect(() => {
     if (!loading && user && profile) {
-      // Redirect based on activation status
-      if (profile.is_active) {
+      // Redirect admins to admin panel
+      if (isAdmin) {
+        navigate('/admin');
+      } else if (profile.is_active) {
         navigate('/app');
       } else {
         navigate('/pay');
       }
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, profile, isAdmin, loading, navigate]);
 
   const handleForgotPassword = async () => {
     const email = form.getValues('email');
