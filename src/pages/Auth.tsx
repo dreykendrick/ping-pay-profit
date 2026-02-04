@@ -55,20 +55,39 @@ export default function Auth() {
     }
   }, [user, profile, loading, navigate]);
 
+  const handleForgotPassword = async () => {
+    const email = form.getValues('email');
+    if (!email || !z.string().email().safeParse(email).success) {
+      form.setError('email', { message: 'Please enter a valid email' });
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast({
+        title: 'Check your email',
+        description: 'We sent you a password reset link.',
+      });
+      setMode('login');
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Something went wrong',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const onSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
     try {
-      if (mode === 'forgot') {
-        const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        });
-        if (error) throw error;
-        toast({
-          title: 'Check your email',
-          description: 'We sent you a password reset link.',
-        });
-        setMode('login');
-      } else if (mode === 'signup') {
+      if (mode === 'signup') {
         const { error } = await signUp(data.email, data.password);
         if (error) throw error;
         toast({
@@ -134,7 +153,7 @@ export default function Auth() {
           </p>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={mode === 'forgot' ? (e) => { e.preventDefault(); handleForgotPassword(); } : form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="email"
