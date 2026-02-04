@@ -36,9 +36,15 @@ const navItems = [
 
 function AppSidebarContent() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut } = useAuth();
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   return (
     <Sidebar className={collapsed ? 'w-14' : 'w-60'} collapsible="icon">
@@ -79,7 +85,7 @@ function AppSidebarContent() {
         <Button
           variant="ghost"
           className={`w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent ${collapsed ? 'px-2' : ''}`}
-          onClick={signOut}
+          onClick={handleSignOut}
         >
           <LogOut className="w-5 h-5" />
           {!collapsed && <span className="ml-2">Sign Out</span>}
