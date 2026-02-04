@@ -45,7 +45,12 @@ export default function Paywall() {
   const [requestSubmitted, setRequestSubmitted] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, loading } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   const form = useForm<ActivationFormData>({
     resolver: zodResolver(activationSchema),
@@ -112,7 +117,7 @@ export default function Paywall() {
               >
                 Refresh Status
               </Button>
-              <Button variant="ghost" className="w-full" onClick={signOut}>
+              <Button variant="ghost" className="w-full" onClick={handleSignOut}>
                 Sign Out
               </Button>
             </div>
@@ -133,7 +138,7 @@ export default function Paywall() {
             </div>
             <span className="text-xl font-bold">PayPing</span>
           </Link>
-          <Button variant="ghost" onClick={signOut}>
+          <Button variant="ghost" onClick={handleSignOut}>
             Sign Out
           </Button>
         </div>
