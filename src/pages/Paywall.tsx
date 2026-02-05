@@ -67,7 +67,7 @@ export default function Paywall() {
     checkExistingRequest();
   }, [user]);
 
-  // Redirect logic
+  // Redirect logic - but allow active users to view billing info
   useEffect(() => {
     if (!loading) {
       if (!user) {
@@ -76,9 +76,8 @@ export default function Paywall() {
         navigate('/admin');
       } else if (!profile?.country) {
         navigate('/onboarding');
-      } else if (profile?.is_active) {
-        navigate('/app');
       }
+      // Active users can stay to view billing info
     }
   }, [loading, user, isAdmin, profile, navigate]);
 
@@ -147,6 +146,70 @@ export default function Paywall() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show billing info for active users
+  if (profile?.is_active) {
+    return (
+      <div className="min-h-screen bg-muted/30">
+        <header className="bg-background border-b">
+          <div className="container px-4 py-4 flex items-center justify-between">
+            <Link to="/app" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <Zap className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span className="text-xl font-bold">PayPing</span>
+            </Link>
+            <Button variant="outline" asChild className="rounded-xl">
+              <Link to="/app">Back to App</Link>
+            </Button>
+          </div>
+        </header>
+        
+        <div className="container px-4 py-12 max-w-lg mx-auto">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 text-success mb-6">
+              <Check className="w-4 h-4" />
+              <span className="text-sm font-medium">Active Subscription</span>
+            </div>
+            <h1 className="text-3xl font-bold mb-4">Billing</h1>
+            <p className="text-muted-foreground">Your subscription details</p>
+          </div>
+          
+          <Card className="border-0 shadow-premium mb-6">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between py-3 border-b">
+                <span className="text-muted-foreground">Plan</span>
+                <span className="font-medium">{profile.plan === 'US' ? 'US Plan' : 'International Plan'}</span>
+              </div>
+              <div className="flex items-center justify-between py-3 border-b">
+                <span className="text-muted-foreground">Region</span>
+                <span className="font-medium">{profile.country || 'Not set'}</span>
+              </div>
+              <div className="flex items-center justify-between py-3 border-b">
+                <span className="text-muted-foreground">Monthly Price</span>
+                <span className="font-bold text-xl">${profile.monthly_price || price}/month</span>
+              </div>
+              {profile.activated_at && (
+                <div className="flex items-center justify-between py-3">
+                  <span className="text-muted-foreground">Active Since</span>
+                  <span>{new Date(profile.activated_at).toLocaleDateString()}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 shadow-premium bg-muted/30">
+            <CardContent className="py-6">
+              <h3 className="font-semibold mb-2">Need to cancel or change plans?</h3>
+              <p className="text-sm text-muted-foreground">
+                Contact us at support@payping.app and we'll help you with any billing changes.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
