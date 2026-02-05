@@ -40,22 +40,39 @@ interface Profile {
 }
 
 // Helper function to send email via Resend API
-async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+async function sendEmail(
+  to: string, 
+  subject: string, 
+  html: string,
+  replyTo?: string,
+  fromName?: string
+): Promise<boolean> {
   if (!RESEND_API_KEY) return false;
   
   try {
+    const from = fromName 
+      ? `${fromName} via PayPing <onboarding@resend.dev>`
+      : "PayPing <onboarding@resend.dev>";
+    
+    const emailPayload: any = {
+      from,
+      to: [to],
+      subject,
+      html,
+    };
+    
+    // FIX 5: Add Reply-To header so clients can reply directly to the user
+    if (replyTo) {
+      emailPayload.reply_to = replyTo;
+    }
+    
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        from: "PayPing <onboarding@resend.dev>",
-        to: [to],
-        subject,
-        html,
-      }),
+      body: JSON.stringify(emailPayload),
     });
     
     const result = await response.json();
@@ -73,10 +90,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Validate cron secret (optional but recommended)
+    // FIX 2: CRON ENDPOINT SECURITY - Validate secret FIRST before any processing
     const cronSecret = req.headers.get("x-cron-secret");
     if (CRON_SECRET && cronSecret !== CRON_SECRET) {
-      console.log("Invalid cron secret, proceeding anyway for testing");
+      console.error("Unauthorized cron access attempt - invalid secret");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized", message: "Invalid cron secret" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     if (!RESEND_API_KEY) {
@@ -89,7 +110,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Get due reminders that haven't been fully processed
+    // FIX 4: Get ONLY pending reminders that haven't been fully processed
+    // A reminder is complete when:
+    // - user_notified_at is set AND
+    // - (send_client_email is false OR client_emailed_at is set)
     const now = new Date().toISOString();
     const { data: reminders, error: remindersError } = await supabase
       .from("reminders")
@@ -139,6 +163,9 @@ const handler = async (req: Request): Promise<Response> => {
           last_attempt_at: new Date().toISOString(),
         };
 
+        let userNotified = !!reminder.user_notified_at;
+        let clientEmailed = !!reminder.client_emailed_at;
+
         // 1. Notify the PayPing user
         if (!reminder.user_notified_at) {
           const userHtml = `
@@ -160,14 +187,14 @@ const handler = async (req: Request): Promise<Response> => {
                 <p style="color: #64748b; font-size: 14px; margin: 0 0 24px 0;">
                   Channel: <strong>${reminder.channel}</strong> | Type: <strong>${reminder.kind}</strong>
                 </p>
-                <a href="https://payping.app/app" style="display: inline-block; background: #6366f1; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                <a href="https://ping-pay-profit.lovable.app/app" style="display: inline-block; background: #6366f1; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
                   Open Dashboard
                 </a>
               </div>
             </div>
           `;
           
-          const userNotified = await sendEmail(
+          userNotified = await sendEmail(
             (profile as Profile).email,
             `PayPing: Reminder due today — ${(client as Client).name}`,
             userHtml
@@ -181,13 +208,13 @@ const handler = async (req: Request): Promise<Response> => {
 
         // 2. Email the client if applicable
         const clientData = client as Client;
+        const profileData = profile as Profile;
         const clientEmail = clientData.email || (clientData.contact.includes("@") ? clientData.contact : null);
         
         if (
           reminder.send_client_email &&
           !reminder.client_emailed_at &&
-          clientEmail &&
-          (reminder.channel === "email" || reminder.send_client_email)
+          clientEmail
         ) {
           const clientHtml = `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
@@ -200,12 +227,32 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
           `;
           
-          const clientEmailed = await sendEmail(clientEmail, "Quick reminder", clientHtml);
+          // FIX 5: Add Reply-To so client can respond directly to user
+          clientEmailed = await sendEmail(
+            clientEmail, 
+            "Quick reminder", 
+            clientHtml,
+            profileData.email, // Reply-To: user's email
+            profileData.email.split('@')[0] // From name derived from email
+          );
           
           if (clientEmailed) {
             updates.client_emailed_at = new Date().toISOString();
             console.log(`Client emailed for reminder ${reminder.id}`);
           }
+        }
+
+        // FIX 4: AUTO-COMPLETION LOGIC
+        // Mark as done if:
+        // - User has been notified AND
+        // - Either client email not required OR client has been emailed
+        const clientEmailRequired = reminder.send_client_email && clientEmail;
+        const isComplete = userNotified && (!clientEmailRequired || clientEmailed);
+        
+        if (isComplete) {
+          updates.status = 'done';
+          updates.done_at = new Date().toISOString();
+          console.log(`Reminder ${reminder.id} marked as DONE`);
         }
 
         // Update reminder
@@ -223,6 +270,7 @@ const handler = async (req: Request): Promise<Response> => {
           client: clientData.name,
           userNotified: !!updates.user_notified_at,
           clientEmailed: !!updates.client_emailed_at,
+          completed: isComplete,
         });
       } catch (reminderError: any) {
         console.error(`Error processing reminder ${reminder.id}:`, reminderError);

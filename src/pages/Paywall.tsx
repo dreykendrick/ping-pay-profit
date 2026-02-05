@@ -41,10 +41,31 @@ export default function Paywall() {
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [requestSubmitted, setRequestSubmitted] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState<{ status: string } | null>(null);
   const [copiedMethod, setCopiedMethod] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, profile, isAdmin, signOut, loading, refreshProfile } = useAuth();
+
+  // Check for existing pending request
+  useEffect(() => {
+    const checkExistingRequest = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('activation_requests')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('status', 'pending')
+          .maybeSingle();
+        
+        if (data) {
+          setPendingRequest(data);
+          setRequestSubmitted(true);
+        }
+      }
+    };
+    checkExistingRequest();
+  }, [user]);
 
   // Redirect logic
   useEffect(() => {

@@ -515,29 +515,50 @@ export default function Reminders() {
                 />
 
                 {/* Send client email toggle */}
-                <FormField
-                  control={form.control}
-                  name="send_client_email"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-xl border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base flex items-center gap-2">
-                          <Mail className="w-4 h-4" />
-                          Auto-email client
-                        </FormLabel>
-                        <FormDescription>
-                          Automatically send this reminder to the client's email when due
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                {(() => {
+                  const selectedClient = clients.find((c) => c.id === watchClientId);
+                  const hasClientEmail = selectedClient?.email || selectedClient?.contact?.includes('@');
+                  
+                  return (
+                    <FormField
+                      control={form.control}
+                      name="send_client_email"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <div className="flex flex-row items-center justify-between rounded-xl border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base flex items-center gap-2">
+                                <Mail className="w-4 h-4" />
+                                Auto-email client
+                              </FormLabel>
+                              <FormDescription>
+                                {hasClientEmail 
+                                  ? 'Automatically send this reminder to the client\'s email when due'
+                                  : 'No email address on file for this client'}
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                disabled={!hasClientEmail}
+                              />
+                            </FormControl>
+                          </div>
+                          {field.value && hasClientEmail && (
+                            <div className="rounded-lg bg-warning/10 border border-warning/30 p-3 text-sm">
+                              <p className="text-warning-foreground">
+                                <strong>Note:</strong> Client emails currently require a verified domain. 
+                                Without one, emails only deliver to the Resend account owner. 
+                                You'll still receive your reminder notification either way.
+                              </p>
+                            </div>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                  );
+                })()}
 
                 <Button type="submit" className="w-full h-12 rounded-xl" disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

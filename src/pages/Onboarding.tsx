@@ -102,12 +102,11 @@ export default function Onboarding() {
 
     setIsLoading(true);
     try {
+      // FIX 1: Only send country - plan/price are enforced server-side by trigger
       const { error } = await supabase
         .from('profiles')
         .update({
           country: country.name,
-          plan: country.plan,
-          monthly_price: country.price,
         })
         .eq('id', user.id);
 
