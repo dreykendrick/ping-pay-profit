@@ -36,6 +36,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { SEO } from '@/components/SEO';
 
 const clientSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -209,12 +210,18 @@ export default function Clients() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Clients</h1>
-          <p className="text-muted-foreground">Manage your client database</p>
-        </div>
+    <>
+      <SEO
+        title="Clients"
+        description="Manage your client database and contact information."
+        noIndex={true}
+      />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Clients</h1>
+            <p className="text-muted-foreground">Manage your client database</p>
+          </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="rounded-xl" onClick={openNewDialog}>
@@ -388,10 +395,11 @@ export default function Clients() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
-            </AlertDialogAction>
+          </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 }

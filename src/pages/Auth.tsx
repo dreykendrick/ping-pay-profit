@@ -17,6 +17,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { SEO } from '@/components/SEO';
 
 const authSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -125,7 +126,13 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <>
+      <SEO
+        title="Sign in to PayPing"
+        description="Access your PayPing account and manage your follow-ups and reminders."
+        noIndex={true}
+      />
+      <div className="min-h-screen flex">
       {/* Left panel - Form */}
       <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
         <div className="w-full max-w-sm mx-auto">
@@ -293,5 +300,6 @@ export default function Auth() {
         </div>
       </div>
     </div>
+    </>
   );
 }

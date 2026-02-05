@@ -32,6 +32,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { SEO } from '@/components/SEO';
 
 interface Profile {
   id: string;
@@ -359,7 +360,13 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <>
+      <SEO
+        title="Admin"
+        description="Manage users, activations, and system settings."
+        noIndex={true}
+      />
+      <div className="min-h-screen bg-muted/30">
       {/* Header */}
       <header className="bg-background border-b">
         <div className="container px-4 py-4 flex items-center justify-between">
@@ -565,5 +572,6 @@ export default function Admin() {
         </Tabs>
       </div>
     </div>
+    </>
   );
 }

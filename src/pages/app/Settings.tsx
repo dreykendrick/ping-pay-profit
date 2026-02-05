@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/SEO';
 
 interface ActivationRequest {
   id: string;
@@ -58,15 +59,21 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-muted-foreground">Manage your account and subscription</p>
-        </div>
-        <Button variant="outline" className="rounded-xl" onClick={handleRefresh}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
+    <>
+      <SEO
+        title="Settings"
+        description="Manage your PayPing account and subscription settings."
+        noIndex={true}
+      />
+      <div className="space-y-6 max-w-2xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Settings</h1>
+            <p className="text-muted-foreground">Manage your account and subscription</p>
+          </div>
+          <Button variant="outline" className="rounded-xl" onClick={handleRefresh}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
         </Button>
       </div>
 
@@ -191,5 +198,6 @@ export default function Settings() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }

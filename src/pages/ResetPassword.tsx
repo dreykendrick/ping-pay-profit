@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { SEO } from '@/components/SEO';
 
 const resetSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -121,18 +122,24 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <Link
-          to="/auth?mode=login"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to login
-        </Link>
+    <>
+      <SEO
+        title="Reset Password"
+        description="Set a new password for your PayPing account."
+        noIndex={true}
+      />
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="w-full max-w-sm">
+          <Link
+            to="/auth?mode=login"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to login
+          </Link>
 
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+          <div className="flex items-center gap-2 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
             <Zap className="w-6 h-6 text-primary-foreground" />
           </div>
           <span className="text-2xl font-bold">PayPing</span>
@@ -195,5 +202,6 @@ export default function ResetPassword() {
         </Form>
       </div>
     </div>
+    </>
   );
 }
