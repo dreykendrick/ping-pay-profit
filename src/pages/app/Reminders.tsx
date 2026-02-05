@@ -545,15 +545,6 @@ export default function Reminders() {
                               />
                             </FormControl>
                           </div>
-                          {field.value && hasClientEmail && (
-                            <div className="rounded-lg bg-warning/10 border border-warning/30 p-3 text-sm">
-                              <p className="text-warning-foreground">
-                                <strong>Note:</strong> Client emails currently require a verified domain. 
-                                Without one, emails only deliver to the Resend account owner. 
-                                You'll still receive your reminder notification either way.
-                              </p>
-                            </div>
-                          )}
                         </FormItem>
                       )}
                     />
