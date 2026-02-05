@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Zap, Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertCircle } from 'lucide-react';
+import paypingLogo from '@/assets/payping-logo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -107,7 +108,7 @@ export default function ResetPassword() {
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-            <Zap className="w-8 h-8 text-destructive" />
+            <AlertCircle className="w-8 h-8 text-destructive" />
           </div>
           <h1 className="text-2xl font-bold mb-2">Invalid or Expired Link</h1>
           <p className="text-muted-foreground mb-6">
@@ -139,11 +140,9 @@ export default function ResetPassword() {
           </Link>
 
           <div className="flex items-center gap-2 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <Zap className="w-6 h-6 text-primary-foreground" />
+            <img src={paypingLogo} alt="PayPing" className="w-10 h-10" />
+            <span className="text-2xl font-bold">PayPing</span>
           </div>
-          <span className="text-2xl font-bold">PayPing</span>
-        </div>
 
         <h1 className="text-2xl font-bold mb-2">Set new password</h1>
         <p className="text-muted-foreground mb-8">

@@ -1,7 +1,8 @@
-import { ArrowRight, Zap } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import heroBg from '@/assets/hero-bg.png';
+import paypingLogo from '@/assets/payping-logo.png';
 
 export function Hero() {
   return (
@@ -17,7 +18,7 @@ export function Hero() {
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-8 animate-fade-up">
-            <Zap className="w-4 h-4" />
+            <img src={paypingLogo} alt="" className="w-4 h-4" />
             <span className="text-sm font-medium">Built for small business owners</span>
           </div>
 
