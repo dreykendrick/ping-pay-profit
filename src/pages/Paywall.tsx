@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Zap, ArrowLeft, Loader2, Check, Clock, CreditCard } from 'lucide-react';
+import { Zap, ArrowLeft, Loader2, Clock, CreditCard, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,7 +29,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { PLANS } from '@/lib/constants';
 
 const activationSchema = z.object({
-  plan: z.enum(['US', 'EA']),
   method: z.string().min(1, 'Please select a payment method'),
   reference: z.string().min(1, 'Please enter your payment reference'),
   amount: z.string().min(1, 'Please enter the amount paid'),
@@ -39,20 +38,28 @@ const activationSchema = z.object({
 type ActivationFormData = z.infer<typeof activationSchema>;
 
 export default function Paywall() {
-  const [selectedPlan, setSelectedPlan] = useState<'US' | 'EA'>('US');
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [requestSubmitted, setRequestSubmitted] = useState(false);
+  const [copiedMethod, setCopiedMethod] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, profile, isAdmin, signOut, loading } = useAuth();
+  const { user, profile, isAdmin, signOut, loading, refreshProfile } = useAuth();
 
-  // Redirect admins to admin panel
+  // Redirect logic
   useEffect(() => {
-    if (!loading && isAdmin) {
-      navigate('/admin');
+    if (!loading) {
+      if (!user) {
+        navigate('/auth');
+      } else if (isAdmin) {
+        navigate('/admin');
+      } else if (!profile?.country) {
+        navigate('/onboarding');
+      } else if (profile?.is_active) {
+        navigate('/app');
+      }
     }
-  }, [loading, isAdmin, navigate]);
+  }, [loading, user, isAdmin, profile, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -62,7 +69,6 @@ export default function Paywall() {
   const form = useForm<ActivationFormData>({
     resolver: zodResolver(activationSchema),
     defaultValues: {
-      plan: 'US',
       method: '',
       reference: '',
       amount: '',
@@ -71,13 +77,13 @@ export default function Paywall() {
   });
 
   const onSubmit = async (data: ActivationFormData) => {
-    if (!user) return;
+    if (!user || !profile) return;
 
     setIsLoading(true);
     try {
       const { error } = await supabase.from('activation_requests').insert({
         user_id: user.id,
-        plan_requested: data.plan,
+        plan_requested: profile.plan || 'EA',
         method: data.method,
         reference: data.reference,
         amount: data.amount,
@@ -102,12 +108,32 @@ export default function Paywall() {
     }
   };
 
-  const currentPlan = PLANS[selectedPlan];
+  const handleCopyInstruction = async (method: string, instruction: string) => {
+    await navigator.clipboard.writeText(instruction);
+    setCopiedMethod(method);
+    toast({
+      title: 'Copied!',
+      description: 'Payment details copied to clipboard.',
+    });
+    setTimeout(() => setCopiedMethod(null), 2000);
+  };
+
+  // Get the plan based on user's profile
+  const currentPlan = profile?.plan ? PLANS[profile.plan as keyof typeof PLANS] : PLANS.EA;
+  const price = profile?.monthly_price || currentPlan.price;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (requestSubmitted) {
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
+        <Card className="max-w-md w-full border-0 shadow-premium">
           <CardContent className="pt-8 pb-8 text-center">
             <div className="w-16 h-16 rounded-full bg-warning/20 flex items-center justify-center mx-auto mb-6">
               <Clock className="w-8 h-8 text-warning" />
@@ -119,8 +145,11 @@ export default function Paywall() {
             <div className="space-y-3">
               <Button
                 variant="outline"
-                className="w-full"
-                onClick={() => window.location.reload()}
+                className="w-full rounded-xl"
+                onClick={() => {
+                  refreshProfile();
+                  window.location.reload();
+                }}
               >
                 Refresh Status
               </Button>
@@ -152,80 +181,86 @@ export default function Paywall() {
       </header>
 
       <div className="container px-4 py-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-lg mx-auto">
+          {/* Progress indicator */}
+          <div className="flex items-center justify-center gap-2 mb-8">
+            <div className="w-8 h-8 rounded-full bg-success flex items-center justify-center text-success-foreground text-sm font-medium">
+              <Check className="w-4 h-4" />
+            </div>
+            <div className="w-12 h-1 bg-primary rounded" />
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
+              2
+            </div>
+            <div className="w-12 h-1 bg-muted rounded" />
+            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-sm font-medium">
+              3
+            </div>
+          </div>
+
           {/* Hero */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
               <CreditCard className="w-4 h-4" />
-              <span className="text-sm font-medium">One-time setup</span>
+              <span className="text-sm font-medium">Step 2 of 3</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-              Pay to unlock PayPing
+            <h1 className="text-3xl font-bold mb-4">
+              Complete your payment
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-              Choose your plan, pay with your preferred method, and we'll activate your account within hours.
+            <p className="text-muted-foreground">
+              Pay with your preferred method and we'll activate your account within hours.
             </p>
           </div>
 
           {!showForm ? (
             <>
-              {/* Plan selection */}
-              <div className="grid md:grid-cols-2 gap-6 mb-12">
-                {Object.values(PLANS).map((plan) => (
-                  <button
-                    key={plan.id}
-                    className={`text-left p-6 rounded-2xl border-2 transition-all ${
-                      selectedPlan === plan.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                    onClick={() => setSelectedPlan(plan.id as 'US' | 'EA')}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-bold">{plan.name}</h3>
-                      {selectedPlan === plan.id && (
-                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-4 h-4 text-primary-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-muted-foreground mb-4">{plan.description}</p>
-                    <p className="text-3xl font-bold">
-                      ${plan.price}
-                      <span className="text-base font-normal text-muted-foreground">/month</span>
-                    </p>
-                  </button>
-                ))}
-              </div>
+              {/* Price display */}
+              <Card className="border-0 shadow-premium mb-6">
+                <CardContent className="p-6 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">Your pricing ({profile?.country || 'Region'})</p>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-4xl font-bold">${price}</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Payment methods */}
-              <Card className="mb-8">
+              <Card className="border-0 shadow-premium mb-8">
                 <CardHeader>
-                  <CardTitle>Payment Methods for {currentPlan.name}</CardTitle>
+                  <CardTitle className="text-lg">Payment Methods</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {currentPlan.paymentMethods.map((method) => (
-                      <div
-                        key={method.name}
-                        className="p-4 rounded-xl bg-muted/50 border"
-                      >
-                        <h4 className="font-semibold mb-1">{method.name}</h4>
+                <CardContent className="space-y-3">
+                  {currentPlan.paymentMethods.map((method) => (
+                    <div
+                      key={method.name}
+                      className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border hover:border-primary/30 transition-colors"
+                    >
+                      <div>
+                        <h4 className="font-semibold">{method.name}</h4>
                         <p className="text-sm text-muted-foreground">{method.instruction}</p>
                       </div>
-                    ))}
-                  </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-lg"
+                        onClick={() => handleCopyInstruction(method.name, method.instruction)}
+                      >
+                        {copiedMethod === method.name ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
 
               <div className="text-center">
                 <Button
                   size="lg"
-                  className="rounded-xl px-8"
-                  onClick={() => {
-                    form.setValue('plan', selectedPlan);
-                    setShowForm(true);
-                  }}
+                  className="w-full rounded-xl py-6 text-lg"
+                  onClick={() => setShowForm(true)}
                 >
                   I've Paid — Request Activation
                 </Button>
@@ -236,14 +271,14 @@ export default function Paywall() {
             </>
           ) : (
             /* Activation form */
-            <Card className="max-w-lg mx-auto">
+            <Card className="border-0 shadow-premium">
               <CardHeader>
                 <button
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
                   onClick={() => setShowForm(false)}
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Back to plans
+                  Back to payment methods
                 </button>
                 <CardTitle>Submit Payment Details</CardTitle>
               </CardHeader>
@@ -301,7 +336,7 @@ export default function Paywall() {
                           <FormLabel>Amount Paid</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder={`$${currentPlan.price}`}
+                              placeholder={`$${price}`}
                               className="h-12 rounded-xl"
                               {...field}
                             />

@@ -16,14 +16,15 @@ export const PLANS = {
   },
   EA: {
     id: 'EA',
-    name: 'East Africa Plan',
+    name: 'International Plan',
     price: 10,
     currency: 'USD',
-    description: 'Built for WhatsApp-first businesses',
+    description: 'Built for WhatsApp-first businesses worldwide',
     paymentMethods: [
       { name: 'M-Pesa', instruction: 'Paybill: 123456, Account: PayPing' },
       { name: 'Airtel Money', instruction: 'Send to: 0700123456' },
       { name: 'Tigo Pesa', instruction: 'Send to: 0700123456' },
+      { name: 'PayPal', instruction: 'Send to: payments@payping.app' },
     ],
   },
 } as const;
@@ -46,8 +47,8 @@ export const FAQ_ITEMS = [
     answer: '7-day money-back guarantee. If PayPing doesn\'t help you stay organized and follow up better, we refund your payment in full.',
   },
   {
-    question: 'Can I upgrade or downgrade my plan?',
-    answer: 'Yes! Contact us anytime to switch between US and EA plans. We\'ll prorate the difference.',
+    question: 'How is pricing determined?',
+    answer: 'Pricing is set during account setup based on your region. This allows us to offer fair pricing globally.',
   },
 ];
 
@@ -81,5 +82,65 @@ export const FEATURES = [
     title: 'Daily Dashboard',
     description: 'See everything due today at a glance. Overdue? We\'ll highlight it.',
     icon: 'LayoutDashboard',
+  },
+];
+
+// Message templates for reminders
+export const MESSAGE_TEMPLATES = [
+  {
+    id: 'followup-general',
+    name: 'General Follow-up',
+    kind: 'followup',
+    channel: 'both',
+    template: 'Hi {name}! Just checking in on our conversation. Let me know if you have any questions or if there\'s anything I can help with.',
+  },
+  {
+    id: 'payment-reminder',
+    name: 'Payment Reminder',
+    kind: 'payment',
+    channel: 'both',
+    template: 'Hi {name}! This is a friendly reminder about the pending payment of {amount}. Please let me know if you have any questions.',
+  },
+  {
+    id: 'payment-overdue',
+    name: 'Overdue Payment',
+    kind: 'payment',
+    channel: 'both',
+    template: 'Hi {name}! Your payment is now overdue. Please send at your earliest convenience or reach out if you need to discuss payment options.',
+  },
+  {
+    id: 'appointment-reminder',
+    name: 'Appointment Reminder',
+    kind: 'followup',
+    channel: 'both',
+    template: 'Hi {name}! Just a reminder about our scheduled appointment. Looking forward to connecting with you!',
+  },
+  {
+    id: 'thank-you',
+    name: 'Thank You',
+    kind: 'followup',
+    channel: 'both',
+    template: 'Hi {name}! Thank you for your business. It was a pleasure working with you. Please don\'t hesitate to reach out if you need anything.',
+  },
+  {
+    id: 'quote-followup',
+    name: 'Quote Follow-up',
+    kind: 'followup',
+    channel: 'both',
+    template: 'Hi {name}! I wanted to follow up on the quote I sent. Do you have any questions or would you like to proceed?',
+  },
+  {
+    id: 'project-update',
+    name: 'Project Update',
+    kind: 'followup',
+    channel: 'both',
+    template: 'Hi {name}! Quick update on your project - things are progressing well. Let me know if you\'d like more details.',
+  },
+  {
+    id: 'invoice-sent',
+    name: 'Invoice Sent',
+    kind: 'payment',
+    channel: 'email',
+    template: 'Hi {name}! I\'ve sent over the invoice for our recent work. Please let me know if you have any questions about the charges.',
   },
 ];

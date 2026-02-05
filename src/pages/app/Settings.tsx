@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { User, CreditCard, Shield, RefreshCw, Loader2 } from 'lucide-react';
+import { User, CreditCard, Shield, RefreshCw, Loader2, MapPin, Globe } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { PLANS } from '@/lib/constants';
 import { Link } from 'react-router-dom';
 
 interface ActivationRequest {
@@ -49,8 +48,6 @@ export default function Settings() {
     await Promise.all([refreshProfile(), fetchActivationRequests()]);
     setLoading(false);
   };
-
-  const currentPlan = profile?.plan ? PLANS[profile.plan as keyof typeof PLANS] : null;
 
   if (loading) {
     return (
@@ -99,24 +96,32 @@ export default function Settings() {
         </CardContent>
       </Card>
 
-      {/* Subscription */}
+      {/* Region & Subscription */}
       <Card className="border-0 shadow-premium">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5" />
+            <Globe className="w-5 h-5" />
             Subscription
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {currentPlan ? (
+          {profile?.country && (
+            <div className="flex items-center justify-between py-3 border-b">
+              <span className="text-muted-foreground flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Region
+              </span>
+              <span className="font-medium">{profile.country}</span>
+            </div>
+          )}
+          {profile?.monthly_price ? (
             <>
               <div className="flex items-center justify-between py-3 border-b">
-                <span className="text-muted-foreground">Plan</span>
-                <span className="font-medium">{currentPlan.name}</span>
-              </div>
-              <div className="flex items-center justify-between py-3 border-b">
-                <span className="text-muted-foreground">Price</span>
-                <span className="font-medium">${currentPlan.price}/month</span>
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  Your pricing
+                </span>
+                <span className="font-medium">${profile.monthly_price}/month</span>
               </div>
               {profile?.activated_at && (
                 <div className="flex items-center justify-between py-3">
@@ -153,7 +158,7 @@ export default function Settings() {
                   className="flex items-center justify-between p-4 rounded-xl bg-muted/50"
                 >
                   <div>
-                    <p className="font-medium">{request.plan_requested} Plan</p>
+                    <p className="font-medium">Activation Request</p>
                     <p className="text-sm text-muted-foreground">
                       {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
                     </p>

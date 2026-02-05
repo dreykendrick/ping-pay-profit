@@ -7,6 +7,8 @@ interface Profile {
   email: string;
   is_active: boolean;
   plan: 'US' | 'EA' | null;
+  country: string | null;
+  monthly_price: number | null;
   created_at: string;
   activated_at: string | null;
 }
