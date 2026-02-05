@@ -33,7 +33,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
-// Countries list with US and Tanzania first, then common countries
+// Countries list - African countries get $10, others get $29
 const COUNTRIES = [
   { code: 'US', name: 'United States', plan: 'US', price: 29 },
   { code: 'TZ', name: 'Tanzania', plan: 'EA', price: 10 },
@@ -43,18 +43,21 @@ const COUNTRIES = [
   { code: 'NG', name: 'Nigeria', plan: 'EA', price: 10 },
   { code: 'GH', name: 'Ghana', plan: 'EA', price: 10 },
   { code: 'ZA', name: 'South Africa', plan: 'EA', price: 10 },
-  { code: 'GB', name: 'United Kingdom', plan: 'EA', price: 10 },
-  { code: 'CA', name: 'Canada', plan: 'EA', price: 10 },
-  { code: 'AU', name: 'Australia', plan: 'EA', price: 10 },
-  { code: 'DE', name: 'Germany', plan: 'EA', price: 10 },
-  { code: 'FR', name: 'France', plan: 'EA', price: 10 },
-  { code: 'IN', name: 'India', plan: 'EA', price: 10 },
-  { code: 'PK', name: 'Pakistan', plan: 'EA', price: 10 },
-  { code: 'BD', name: 'Bangladesh', plan: 'EA', price: 10 },
-  { code: 'PH', name: 'Philippines', plan: 'EA', price: 10 },
-  { code: 'BR', name: 'Brazil', plan: 'EA', price: 10 },
-  { code: 'MX', name: 'Mexico', plan: 'EA', price: 10 },
-  { code: 'OTHER', name: 'Other', plan: 'EA', price: 10 },
+  { code: 'ET', name: 'Ethiopia', plan: 'EA', price: 10 },
+  { code: 'EG', name: 'Egypt', plan: 'EA', price: 10 },
+  { code: 'MA', name: 'Morocco', plan: 'EA', price: 10 },
+  { code: 'GB', name: 'United Kingdom', plan: 'US', price: 29 },
+  { code: 'CA', name: 'Canada', plan: 'US', price: 29 },
+  { code: 'AU', name: 'Australia', plan: 'US', price: 29 },
+  { code: 'DE', name: 'Germany', plan: 'US', price: 29 },
+  { code: 'FR', name: 'France', plan: 'US', price: 29 },
+  { code: 'IN', name: 'India', plan: 'US', price: 29 },
+  { code: 'PK', name: 'Pakistan', plan: 'US', price: 29 },
+  { code: 'BD', name: 'Bangladesh', plan: 'US', price: 29 },
+  { code: 'PH', name: 'Philippines', plan: 'US', price: 29 },
+  { code: 'BR', name: 'Brazil', plan: 'US', price: 29 },
+  { code: 'MX', name: 'Mexico', plan: 'US', price: 29 },
+  { code: 'OTHER', name: 'Other', plan: 'US', price: 29 },
 ] as const;
 
 const onboardingSchema = z.object({
