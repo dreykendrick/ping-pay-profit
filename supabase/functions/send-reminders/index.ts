@@ -51,7 +51,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<boo
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "PayPing <notifications@payping.app>",
+        from: "PayPing <onboarding@resend.dev>",
         to: [to],
         subject,
         html,
