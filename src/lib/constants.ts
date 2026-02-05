@@ -3,28 +3,23 @@
 export const PLANS = {
   US: {
     id: 'US',
-    name: 'US Plan',
+    name: 'International Plan',
     price: 29,
     currency: 'USD',
-    description: 'Best for freelancers & service businesses in the US',
+    description: 'For businesses outside Africa',
     paymentMethods: [
-      { name: 'PayPal', instruction: 'Send to: payments@payping.app' },
-      { name: 'Zelle', instruction: 'Send to: payments@payping.app' },
-      { name: 'CashApp', instruction: 'Send to: $PayPingApp' },
-      { name: 'Venmo', instruction: 'Send to: @PayPingApp' },
+      { name: 'Bank Transfer', instruction: 'Account: 5117 5300 0240 8172, Name: Dustan Peter' },
     ],
   },
   EA: {
     id: 'EA',
-    name: 'International Plan',
+    name: 'Africa Plan',
     price: 10,
     currency: 'USD',
-    description: 'Built for WhatsApp-first businesses worldwide',
+    description: 'For businesses in Africa',
     paymentMethods: [
-      { name: 'M-Pesa', instruction: 'Paybill: 123456, Account: PayPing' },
-      { name: 'Airtel Money', instruction: 'Send to: 0700123456' },
-      { name: 'Tigo Pesa', instruction: 'Send to: 0700123456' },
-      { name: 'PayPal', instruction: 'Send to: payments@payping.app' },
+      { name: 'M-Pesa', instruction: 'Number: +255 759 340 243, Name: Dustan Peter' },
+      { name: 'Tigo Pesa', instruction: 'Paybill: 18285155, Name: Dustan Peter' },
     ],
   },
 } as const;
