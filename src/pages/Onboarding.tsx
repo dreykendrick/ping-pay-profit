@@ -32,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/SEO';
 
 // Countries list - African countries get $10, others get $29
 const COUNTRIES = [
@@ -148,7 +149,13 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <>
+      <SEO
+        title="Set up your PayPing account"
+        description="Choose your region and complete setup to start using PayPing."
+        noIndex={true}
+      />
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Header */}
       <header className="bg-background/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container px-4 py-4 flex items-center justify-between">
@@ -299,5 +306,6 @@ export default function Onboarding() {
         </p>
       </div>
     </div>
+    </>
   );
 }

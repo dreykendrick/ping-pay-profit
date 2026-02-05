@@ -60,6 +60,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { MESSAGE_TEMPLATES } from '@/lib/constants';
+import { SEO } from '@/components/SEO';
 
 const reminderSchema = z.object({
   client_id: z.string().min(1, 'Please select a client'),
@@ -348,15 +349,21 @@ export default function Reminders() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Reminders</h1>
-          <p className="text-muted-foreground">Track and manage all your follow-ups</p>
-        </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (!open) setSearchParams({});
+    <>
+      <SEO
+        title="Reminders"
+        description="Track and manage all your client follow-ups and payment reminders."
+        noIndex={true}
+      />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Reminders</h1>
+            <p className="text-muted-foreground">Track and manage all your follow-ups</p>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) setSearchParams({});
         }}>
           <DialogTrigger asChild>
             <Button className="rounded-xl" onClick={openNewDialog}>
@@ -704,5 +711,6 @@ export default function Reminders() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 }

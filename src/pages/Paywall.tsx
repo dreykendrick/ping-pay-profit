@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { PLANS } from '@/lib/constants';
+import { SEO } from '@/components/SEO';
 
 const activationSchema = z.object({
   method: z.string().min(1, 'Please select a payment method'),
@@ -248,15 +249,21 @@ export default function Paywall() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header */}
-      <header className="bg-background border-b">
-        <div className="container px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">PayPing</span>
+    <>
+      <SEO
+        title="Unlock PayPing"
+        description="Complete setup and unlock full access to PayPing."
+        noIndex={true}
+      />
+      <div className="min-h-screen bg-muted/30">
+        {/* Header */}
+        <header className="bg-background border-b">
+          <div className="container px-4 py-4 flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <Zap className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span className="text-xl font-bold">PayPing</span>
           </Link>
           <Button variant="ghost" onClick={handleSignOut}>
             Sign Out
@@ -464,5 +471,6 @@ export default function Paywall() {
         </div>
       </div>
     </div>
+    </>
   );
 }

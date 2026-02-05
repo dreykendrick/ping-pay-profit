@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { SEO } from '@/components/SEO';
 
 interface Reminder {
   id: string;
@@ -197,7 +198,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <SEO
+        title="Dashboard"
+        description="View today's follow-ups, upcoming reminders, and overdue tasks."
+        noIndex={true}
+      />
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">
@@ -393,5 +400,6 @@ export default function Dashboard() {
         </Card>
       )}
     </div>
+    </>
   );
 }
