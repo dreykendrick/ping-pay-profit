@@ -97,12 +97,15 @@ function AppSidebarContent() {
 
 export default function AppLayout() {
   const navigate = useNavigate();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, isAdmin, loading } = useAuth();
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
         navigate('/auth');
+      } else if (isAdmin) {
+        // FIX 6: Admins should go to admin panel, not app
+        navigate('/admin');
       } else if (!profile?.country) {
         // User hasn't completed onboarding
         navigate('/onboarding');
@@ -110,7 +113,7 @@ export default function AppLayout() {
         navigate('/pay');
       }
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, profile, isAdmin, loading, navigate]);
 
   if (loading) {
     return (

@@ -45,15 +45,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (profileError) throw profileError;
       setProfile(profileData as Profile);
 
-      // Check if user is admin
-      const { data: roleData } = await supabase
+      // FIX 3: Check if user is admin - use maybeSingle() to avoid 406 for non-admins
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
         .eq('role', 'admin')
-        .single();
+        .maybeSingle();
 
-      setIsAdmin(!!roleData);
+      // Gracefully handle absence of admin role - no error for normal users
+      setIsAdmin(roleData !== null && !roleError);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
