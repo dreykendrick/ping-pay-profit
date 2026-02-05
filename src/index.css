@@ -135,6 +135,10 @@
     box-shadow: var(--shadow-lg);
   }
 
+  .shadow-premium-xl {
+    box-shadow: var(--shadow-xl);
+  }
+
   .shadow-glow-primary {
     box-shadow: var(--shadow-glow);
   }

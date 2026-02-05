@@ -40,6 +40,7 @@ import { supabase } from '@/integrations/supabase/client';
 const clientSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   contact: z.string().min(1, 'Contact is required').max(100),
+  email: z.string().email('Invalid email').max(255).optional().or(z.literal('')),
   notes: z.string().max(500).optional(),
 });
 
@@ -49,6 +50,7 @@ interface Client {
   id: string;
   name: string;
   contact: string;
+  email: string | null;
   notes: string | null;
   created_at: string;
 }
@@ -69,6 +71,7 @@ export default function Clients() {
     defaultValues: {
       name: '',
       contact: '',
+      email: '',
       notes: '',
     },
   });
@@ -105,6 +108,7 @@ export default function Clients() {
           .update({
             name: data.name,
             contact: data.contact,
+            email: data.email || null,
             notes: data.notes || null,
           })
           .eq('id', editingClient.id);
@@ -112,9 +116,9 @@ export default function Clients() {
         if (error) throw error;
 
         setClients(clients.map((c) =>
-          c.id === editingClient.id ? { ...c, ...data } : c
+          c.id === editingClient.id ? { ...c, ...data, email: data.email || null } : c
         ));
-        toast({ title: 'Client updated' });
+        toast({ title: 'Client updated!' });
       } else {
         const { data: newClient, error } = await supabase
           .from('clients')
@@ -122,6 +126,7 @@ export default function Clients() {
             user_id: user!.id,
             name: data.name,
             contact: data.contact,
+            email: data.email || null,
             notes: data.notes || null,
           })
           .select()
@@ -130,7 +135,7 @@ export default function Clients() {
         if (error) throw error;
 
         setClients([newClient, ...clients]);
-        toast({ title: 'Client created' });
+        toast({ title: 'Client created!' });
       }
 
       setDialogOpen(false);
@@ -176,6 +181,7 @@ export default function Clients() {
     form.reset({
       name: client.name,
       contact: client.contact,
+      email: client.email || '',
       notes: client.notes || '',
     });
     setDialogOpen(true);
@@ -183,7 +189,7 @@ export default function Clients() {
 
   const openNewDialog = () => {
     setEditingClient(null);
-    form.reset({ name: '', contact: '', notes: '' });
+    form.reset({ name: '', contact: '', email: '', notes: '' });
     setDialogOpen(true);
   };
 
@@ -240,9 +246,22 @@ export default function Clients() {
                   name="contact"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contact (Email or Phone)</FormLabel>
+                      <FormLabel>Phone/WhatsApp</FormLabel>
                       <FormControl>
-                        <Input placeholder="email@example.com or +1234567890" className="h-12 rounded-xl" {...field} />
+                        <Input placeholder="+1234567890" className="h-12 rounded-xl" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email (optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="client@example.com" type="email" className="h-12 rounded-xl" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -49,6 +49,9 @@ export default function Auth() {
       // Redirect admins to admin panel
       if (isAdmin) {
         navigate('/admin');
+      } else if (!profile.country) {
+        // New user - needs to complete onboarding
+        navigate('/onboarding');
       } else if (profile.is_active) {
         navigate('/app');
       } else {
@@ -93,9 +96,10 @@ export default function Auth() {
         const { error } = await signUp(data.email, data.password);
         if (error) throw error;
         toast({
-          title: 'Check your email',
-          description: 'We sent you a confirmation link. Click it to activate your account.',
+          title: 'Account created!',
+          description: 'Complete your setup to continue.',
         });
+        // Navigation handled by useEffect after profile loads
       } else {
         const { error } = await signIn(data.email, data.password);
         if (error) throw error;
