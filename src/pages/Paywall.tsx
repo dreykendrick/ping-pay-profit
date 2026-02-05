@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Zap, ArrowLeft, Loader2, Clock, CreditCard, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Loader2, Clock, CreditCard, Copy, Check } from 'lucide-react';
+import paypingLogo from '@/assets/payping-logo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -158,9 +159,7 @@ export default function Paywall() {
         <header className="bg-background border-b">
           <div className="container px-4 py-4 flex items-center justify-between">
             <Link to="/app" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Zap className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img src={paypingLogo} alt="PayPing" className="w-8 h-8" />
               <span className="text-xl font-bold">PayPing</span>
             </Link>
             <Button variant="outline" asChild className="rounded-xl">
@@ -260,9 +259,7 @@ export default function Paywall() {
         <header className="bg-background border-b">
           <div className="container px-4 py-4 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Zap className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img src={paypingLogo} alt="PayPing" className="w-8 h-8" />
               <span className="text-xl font-bold">PayPing</span>
           </Link>
           <Button variant="ghost" onClick={handleSignOut}>

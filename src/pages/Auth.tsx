@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Zap, Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
+import paypingLogo from '@/assets/payping-logo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -147,9 +148,7 @@ export default function Auth() {
 
           {/* Logo */}
           <div className="flex items-center gap-2 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Zap className="w-6 h-6 text-primary-foreground" />
-            </div>
+            <img src={paypingLogo} alt="PayPing" className="w-10 h-10" />
             <span className="text-2xl font-bold">PayPing</span>
           </div>
 

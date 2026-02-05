@@ -7,12 +7,13 @@ import {
   Check, 
   X, 
   Loader2, 
-  Shield, 
-  Zap,
+  Shield,
   ArrowLeft,
   RefreshCw,
-  Database
+  Database,
+  Play
 } from 'lucide-react';
+import paypingLogo from '@/assets/payping-logo.png';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -377,9 +378,7 @@ export default function Admin() {
             </Link>
             <div className="w-px h-6 bg-border" />
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Zap className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img src={paypingLogo} alt="PayPing" className="w-8 h-8" />
               <span className="text-xl font-bold">PayPing</span>
               <Badge variant="secondary">Admin</Badge>
             </div>
@@ -408,7 +407,7 @@ export default function Admin() {
               disabled={actionLoading === 'demo'}
             >
               {actionLoading === 'demo' && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              <Zap className="w-4 h-4 mr-2" />
+              <Play className="w-4 h-4 mr-2" />
               Activate My Account (Demo)
             </Button>
             <Button

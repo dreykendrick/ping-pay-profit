@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Zap, Globe, Loader2, Check, MapPin } from 'lucide-react';
+import { Globe, Loader2, Check, MapPin } from 'lucide-react';
+import paypingLogo from '@/assets/payping-logo.png';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -160,9 +161,7 @@ export default function Onboarding() {
       <header className="bg-background/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img src={paypingLogo} alt="PayPing" className="w-8 h-8" />
             <span className="text-xl font-bold">PayPing</span>
           </Link>
           <Button variant="ghost" size="sm" onClick={handleSignOut}>
