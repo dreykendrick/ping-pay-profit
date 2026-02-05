@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import Onboarding from "./pages/Onboarding";
 import Paywall from "./pages/Paywall";
 import Admin from "./pages/Admin";
 import AppLayout from "./components/layout/AppLayout";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/pay" element={<Paywall />} />
             <Route path="/admin" element={<Admin />} />
             

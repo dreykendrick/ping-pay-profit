@@ -60,6 +60,7 @@ export type Database = {
         Row: {
           contact: string
           created_at: string | null
+          email: string | null
           id: string
           name: string
           notes: string | null
@@ -68,6 +69,7 @@ export type Database = {
         Insert: {
           contact: string
           created_at?: string | null
+          email?: string | null
           id?: string
           name: string
           notes?: string | null
@@ -76,6 +78,7 @@ export type Database = {
         Update: {
           contact?: string
           created_at?: string | null
+          email?: string | null
           id?: string
           name?: string
           notes?: string | null
@@ -86,66 +89,87 @@ export type Database = {
       profiles: {
         Row: {
           activated_at: string | null
+          country: string | null
           created_at: string | null
           email: string
           id: string
           is_active: boolean | null
+          monthly_price: number | null
           plan: string | null
         }
         Insert: {
           activated_at?: string | null
+          country?: string | null
           created_at?: string | null
           email: string
           id: string
           is_active?: boolean | null
+          monthly_price?: number | null
           plan?: string | null
         }
         Update: {
           activated_at?: string | null
+          country?: string | null
           created_at?: string | null
           email?: string
           id?: string
           is_active?: boolean | null
+          monthly_price?: number | null
           plan?: string | null
         }
         Relationships: []
       }
       reminders: {
         Row: {
+          attempt_count: number | null
           channel: string
+          client_emailed_at: string | null
           client_id: string
           created_at: string | null
           done_at: string | null
           id: string
           kind: string
+          last_attempt_at: string | null
           message: string
           remind_at: string
+          send_client_email: boolean | null
           status: string | null
           user_id: string
+          user_notified_at: string | null
         }
         Insert: {
+          attempt_count?: number | null
           channel: string
+          client_emailed_at?: string | null
           client_id: string
           created_at?: string | null
           done_at?: string | null
           id?: string
           kind: string
+          last_attempt_at?: string | null
           message: string
           remind_at: string
+          send_client_email?: boolean | null
           status?: string | null
           user_id: string
+          user_notified_at?: string | null
         }
         Update: {
+          attempt_count?: number | null
           channel?: string
+          client_emailed_at?: string | null
           client_id?: string
           created_at?: string | null
           done_at?: string | null
           id?: string
           kind?: string
+          last_attempt_at?: string | null
           message?: string
           remind_at?: string
+          send_client_email?: boolean | null
           status?: string | null
           user_id?: string
+          user_notified_at?: string | null
         }
         Relationships: [
           {

@@ -103,7 +103,10 @@ export default function AppLayout() {
     if (!loading) {
       if (!user) {
         navigate('/auth');
-      } else if (profile && !profile.is_active) {
+      } else if (!profile?.country) {
+        // User hasn't completed onboarding
+        navigate('/onboarding');
+      } else if (!profile.is_active) {
         navigate('/pay');
       }
     }

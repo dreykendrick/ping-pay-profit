@@ -4,12 +4,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, isToday, isThisWeek, isPast, startOfDay } from 'date-fns';
-import { Plus, Search, Edit2, Trash2, Copy, Check, Loader2, Bell, Filter } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Copy, Check, Loader2, Bell, FileText, Mail, MessageSquare } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +36,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import {
   Select,
@@ -48,9 +51,15 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { MESSAGE_TEMPLATES } from '@/lib/constants';
 
 const reminderSchema = z.object({
   client_id: z.string().min(1, 'Please select a client'),
@@ -58,6 +67,7 @@ const reminderSchema = z.object({
   kind: z.enum(['followup', 'payment']),
   channel: z.enum(['whatsapp', 'email']),
   message: z.string().min(1, 'Message is required').max(1000),
+  send_client_email: z.boolean().default(false),
 });
 
 type ReminderFormData = z.infer<typeof reminderSchema>;
@@ -66,6 +76,7 @@ interface Client {
   id: string;
   name: string;
   contact: string;
+  email: string | null;
 }
 
 interface Reminder {
@@ -75,19 +86,9 @@ interface Reminder {
   channel: string;
   message: string;
   status: string;
+  send_client_email: boolean;
   client: Client;
 }
-
-const MESSAGE_TEMPLATES = {
-  followup: {
-    whatsapp: 'Hi {name}! Just checking in on our conversation. Let me know if you have any questions!',
-    email: 'Hi {name},\n\nI wanted to follow up on our recent conversation. Please let me know if you have any questions or if there\'s anything I can help with.\n\nBest regards',
-  },
-  payment: {
-    whatsapp: 'Hi {name}! This is a friendly reminder about the pending payment. Please let me know if you have any questions.',
-    email: 'Hi {name},\n\nThis is a friendly reminder about your pending payment. Please let me know if you have any questions or concerns.\n\nBest regards',
-  },
-};
 
 export default function Reminders() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -100,6 +101,7 @@ export default function Reminders() {
   const [deleteReminder, setDeleteReminder] = useState<Reminder | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [showTemplates, setShowTemplates] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -111,10 +113,10 @@ export default function Reminders() {
       kind: 'followup',
       channel: 'whatsapp',
       message: '',
+      send_client_email: false,
     },
   });
 
-  // Watch for kind and channel changes to update template
   const watchKind = form.watch('kind');
   const watchChannel = form.watch('channel');
   const watchClientId = form.watch('client_id');
@@ -124,18 +126,6 @@ export default function Reminders() {
       fetchData();
     }
   }, [user]);
-
-  useEffect(() => {
-    // Update message template when kind/channel/client changes
-    if (!editingReminder && watchKind && watchChannel) {
-      const selectedClient = clients.find((c) => c.id === watchClientId);
-      const template = MESSAGE_TEMPLATES[watchKind as keyof typeof MESSAGE_TEMPLATES][watchChannel as keyof typeof MESSAGE_TEMPLATES.followup];
-      const message = selectedClient
-        ? template.replace('{name}', selectedClient.name)
-        : template.replace('{name}', 'there');
-      form.setValue('message', message);
-    }
-  }, [watchKind, watchChannel, watchClientId, clients, editingReminder]);
 
   const fetchData = async () => {
     try {
@@ -147,7 +137,7 @@ export default function Reminders() {
           .order('remind_at', { ascending: true }),
         supabase
           .from('clients')
-          .select('id, name, contact')
+          .select('id, name, contact, email')
           .eq('user_id', user!.id)
           .order('name'),
       ]);
@@ -164,6 +154,18 @@ export default function Reminders() {
     }
   };
 
+  const applyTemplate = (template: typeof MESSAGE_TEMPLATES[0]) => {
+    const selectedClient = clients.find((c) => c.id === watchClientId);
+    const message = template.template.replace('{name}', selectedClient?.name || 'there').replace('{amount}', '[amount]');
+    form.setValue('message', message);
+    form.setValue('kind', template.kind as 'followup' | 'payment');
+    setShowTemplates(false);
+    toast({
+      title: 'Template applied',
+      description: 'Edit the message as needed.',
+    });
+  };
+
   const onSubmit = async (data: ReminderFormData) => {
     setIsSubmitting(true);
     try {
@@ -176,11 +178,12 @@ export default function Reminders() {
             kind: data.kind,
             channel: data.channel,
             message: data.message,
+            send_client_email: data.send_client_email,
           })
           .eq('id', editingReminder.id);
 
         if (error) throw error;
-        toast({ title: 'Reminder updated' });
+        toast({ title: 'Reminder updated!' });
       } else {
         const { error } = await supabase.from('reminders').insert({
           user_id: user!.id,
@@ -189,10 +192,11 @@ export default function Reminders() {
           kind: data.kind,
           channel: data.channel,
           message: data.message,
+          send_client_email: data.send_client_email,
         });
 
         if (error) throw error;
-        toast({ title: 'Reminder created' });
+        toast({ title: 'Reminder created!' });
       }
 
       await fetchData();
@@ -255,7 +259,7 @@ export default function Reminders() {
       setReminders(reminders.map((r) =>
         r.id === id ? { ...r, status: 'done' } : r
       ));
-      toast({ title: 'Marked as done' });
+      toast({ title: 'Marked as done!' });
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -273,18 +277,21 @@ export default function Reminders() {
       kind: reminder.kind as 'followup' | 'payment',
       channel: reminder.channel as 'whatsapp' | 'email',
       message: reminder.message,
+      send_client_email: reminder.send_client_email || false,
     });
     setDialogOpen(true);
   };
 
   const openNewDialog = () => {
     setEditingReminder(null);
+    const defaultMessage = 'Hi there! Just checking in on our conversation. Let me know if you have any questions!';
     form.reset({
       client_id: '',
       remind_at: '',
       kind: 'followup',
       channel: 'whatsapp',
-      message: MESSAGE_TEMPLATES.followup.whatsapp.replace('{name}', 'there'),
+      message: defaultMessage,
+      send_client_email: false,
     });
     setDialogOpen(true);
   };
@@ -318,10 +325,24 @@ export default function Reminders() {
 
   const filteredReminders = filterReminders(reminders);
 
+  // Loading skeleton
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-32 mb-2" />
+            <Skeleton className="h-5 w-48" />
+          </div>
+          <Skeleton className="h-10 w-36" />
+        </div>
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-10 w-96" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -343,7 +364,7 @@ export default function Reminders() {
               New Reminder
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingReminder ? 'Edit Reminder' : 'Create Reminder'}</DialogTitle>
             </DialogHeader>
@@ -355,18 +376,24 @@ export default function Reminders() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Client</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-12 rounded-xl">
                             <SelectValue placeholder="Select a client" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {clients.map((client) => (
-                            <SelectItem key={client.id} value={client.id}>
-                              {client.name}
-                            </SelectItem>
-                          ))}
+                          {clients.length === 0 ? (
+                            <div className="p-4 text-center text-muted-foreground">
+                              No clients yet. Add a client first.
+                            </div>
+                          ) : (
+                            clients.map((client) => (
+                              <SelectItem key={client.id} value={client.id}>
+                                {client.name}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -395,7 +422,7 @@ export default function Reminders() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger className="h-12 rounded-xl">
                               <SelectValue />
@@ -417,7 +444,7 @@ export default function Reminders() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Channel</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger className="h-12 rounded-xl">
                               <SelectValue />
@@ -434,6 +461,41 @@ export default function Reminders() {
                   />
                 </div>
 
+                {/* Template Library */}
+                <Collapsible open={showTemplates} onOpenChange={setShowTemplates}>
+                  <CollapsibleTrigger asChild>
+                    <Button type="button" variant="outline" className="w-full rounded-xl justify-between">
+                      <span className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        Use Template
+                      </span>
+                      <Badge variant="secondary">{MESSAGE_TEMPLATES.length}</Badge>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2">
+                    <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto p-1">
+                      {MESSAGE_TEMPLATES.map((template) => (
+                        <button
+                          key={template.id}
+                          type="button"
+                          onClick={() => applyTemplate(template)}
+                          className="text-left p-3 rounded-lg border hover:border-primary/50 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-sm">{template.name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {template.kind}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {template.template}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
                 <FormField
                   control={form.control}
                   name="message"
@@ -448,6 +510,31 @@ export default function Reminders() {
                         />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Send client email toggle */}
+                <FormField
+                  control={form.control}
+                  name="send_client_email"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-xl border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          Auto-email client
+                        </FormLabel>
+                        <FormDescription>
+                          Automatically send this reminder to the client's email when due
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />
@@ -513,7 +600,7 @@ export default function Reminders() {
             return (
               <Card
                 key={reminder.id}
-                className={`border-0 shadow-premium ${isOverdue ? 'border-l-4 border-l-destructive' : ''} ${isDone ? 'opacity-60' : ''}`}
+                className={`border-0 shadow-premium transition-all hover:shadow-premium-xl ${isOverdue ? 'border-l-4 border-l-destructive' : ''} ${isDone ? 'opacity-60' : ''}`}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
@@ -523,8 +610,17 @@ export default function Reminders() {
                         <Badge variant={reminder.kind === 'payment' ? 'destructive' : 'secondary'}>
                           {reminder.kind}
                         </Badge>
-                        <Badge variant="outline">{reminder.channel}</Badge>
-                        {isDone && <Badge variant="secondary">Done</Badge>}
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          {reminder.channel === 'whatsapp' ? <MessageSquare className="w-3 h-3" /> : <Mail className="w-3 h-3" />}
+                          {reminder.channel}
+                        </Badge>
+                        {reminder.send_client_email && (
+                          <Badge variant="outline" className="bg-primary/10">
+                            <Mail className="w-3 h-3 mr-1" />
+                            Auto-email
+                          </Badge>
+                        )}
+                        {isDone && <Badge className="bg-success text-success-foreground">Done</Badge>}
                         {isOverdue && <Badge variant="destructive">Overdue</Badge>}
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{reminder.message}</p>
